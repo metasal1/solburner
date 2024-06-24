@@ -22,8 +22,8 @@ export default function AppWalletProvider({
 }) {
     const network = WalletAdapterNetwork.Mainnet;
     // Use your custom RPC endpoint here
-    const customRpcEndpoint = "https://mainnet.helius-rpc.com/?api-key=ff0d3523-6397-47bf-bf5d-acb7d765d5ff";
-    const endpoint = useMemo(() => customRpcEndpoint, [network]);
+    const customRpcEndpoint = process.env.NEXT_PUBLIC_RPC ?? 'https://api.devnet.solana.com';
+    const endpoint = useMemo(() => customRpcEndpoint, [customRpcEndpoint]);
     const wallets = useMemo(
         () => [
             // Add your wallet adapters here

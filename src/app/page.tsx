@@ -149,41 +149,40 @@ export default function Address() {
         getAllTokens(); // Refresh the tokens list
     };
 
+    // this helper reduces the length of the address and when clicked copy the address to the clipboard
+    const addressHelper = (address: string) => {
+        return (
+            <div className="flex gap-2">
+                <button className="cursor-pointer text-sm"
+                    onClick={() => {
+                        navigator.clipboard.writeText(address);
+                        toast.success("Address copied to clipboard");
+                    }}
+                >
+                    {address.slice(0, 4)}...{address.slice(26, 30)}
+                    📋
+                </button>
+            </div>
+        );
+    }
     return (
         <main className="flex min-h-screen flex-col items-center justify-evenly p-24">
-            <div className="text-9xl font-extrabold">S🔥LBURN</div>
-            <div className="italic">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <div><Toaster /></div>
+            <div className="text-4xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURN</div>
+            <div className="italic text-sm md:text-md text-center p-2">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <WalletMultiButton style={{}} />
 
             {publicKey ? (
-                <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-4 text-center">
                     <div>Balance : {balance} SOL</div>
-                    {/* <div>
-                        <button
-                            onClick={getAirdropOnClick}
-                            type="button"
-                            className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                        >
-                            Get Airdrop
-                        </button>
-                    </div> */}
-                    <div>Tokens</div>
                     <div key={0}>
-                        {/* <button
-                            onClick={getAllTokens}
-                            type="button"
-                            className="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700"
-                        >
-                            Get Tokens
-                        </button> */}
                         <div>{tokens.length} tokens found</div>
                         {tokens.length > 0 && (
-                            <table className="table-auto border-collapse border border-gray-300 w-full text-left">
+                            <table className="table-fixed border-collapse border border-gray-300 w-full text-left text-xs md:text-md lg:text-lg overflow-clip">
                                 <thead>
                                     <tr>
-                                        <th className="border border-gray-300 px-4 py-2">Mint Address</th>
-                                        <th className="border border-gray-300 px-4 py-2">ATA Address</th>
+                                        <th className="border border-gray-300 px-4 py-2">Token</th>
+                                        {/* <th className="border border-gray-300 px-4 py-2">ATA Address</th> */}
                                         <th className="border border-gray-300 px-4 py-2">Amount</th>
                                         <th className="border border-gray-300 px-4 py-2">Burn</th>
                                     </tr>
@@ -191,8 +190,8 @@ export default function Address() {
                                 <tbody>
                                     {tokens.map((token, index) => (
                                         <tr key={index} className="border border-gray-300">
-                                            <td className="border border-gray-300 px-4 py-2">{token.account.data.parsed.info.mint}</td>
-                                            <td className="border border-gray-300 px-4 py-2">{token.pubkey.toString()}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{addressHelper(token.account.data.parsed.info.mint)}</td>
+                                            {/* <td className="border border-gray-300 px-4 py-2">{addressHelper(token.pubkey.toString())}</td> */}
                                             <td className="border border-gray-300 px-4 py-2">{token.account.data.parsed.info.tokenAmount.uiAmount}</td>
                                             <td className="border border-gray-300 px-4 py-2">
                                                 <input
@@ -210,7 +209,7 @@ export default function Address() {
                                                         ? "cursor-not-allowed"
                                                         : "cursor-pointer"
                                                         } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
-                                                    disabled={token.account.data.parsed.info.tokenAmount.uiAmount === 0}
+                                                    hidden={token.account.data.parsed.info.tokenAmount.uiAmount === 0}
                                                 >
                                                     Burn
                                                 </button>
@@ -225,6 +224,7 @@ export default function Address() {
             ) : (
                 <h1>Wallet is not connected</h1>
             )}
+            <footer className="text-xs p-5">Made by <Link className="text-red-500" target="_blank" href={"https://www.metasal.xyz"}>@metasal</Link></footer>
         </main>
     );
 }
