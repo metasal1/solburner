@@ -12,13 +12,13 @@ import {
 import { useEffect, useState } from "react";
 import {
     TOKEN_PROGRAM_ID,
-    createBurnCheckedInstruction,
+    createBurnCheckedInstruction, createCloseAccountInstruction
 } from "@solana/spl-token";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 
-export default function Address() {
+export default function Page() {
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const [tokens, setTokens] = useState<any[]>([]);
@@ -115,7 +115,6 @@ export default function Address() {
             toast.error("X - Transaction not confirmed.");
             throw new Error("❌ - Transaction not confirmed.");
         }
-        console.log("🔥 SUCCESSFUL BURN!🔥", "\n", `https://explorer.solana.com/tx/${txId}?cluster=devnet`);
         toast.custom((t) => (
             <div
                 className={`${t.visible ? 'animate-enter' : 'animate-leave'
@@ -130,7 +129,7 @@ export default function Address() {
                                 Transaction ID
                             </p>
                             <p className="mt-1 text-sm text-gray-500">
-                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}?cluster=devnet`}>Open Explorer</Link>
+                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}`}>Open Explorer</Link>
                             </p>
                         </div>
                     </div>
@@ -165,6 +164,73 @@ export default function Address() {
             </div>
         );
     }
+
+    const closeAccount = async (token: any) => {
+        alert("This feature is not yet implemented");
+
+        if (!publicKey) return;
+
+        const ataAddress = token.pubkey;
+
+        const closeIx = createCloseAccountInstruction(
+            new PublicKey(ataAddress),
+            new PublicKey(publicKey.toBase58()),
+            new PublicKey(publicKey.toBase58())
+        );
+
+        const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
+
+        const messageV0 = new TransactionMessage({
+            payerKey: publicKey,
+            recentBlockhash: blockhash,
+            instructions: [closeIx],
+        }).compileToV0Message();
+        const transaction = new VersionedTransaction(messageV0);
+        const txId = await sendTransaction(transaction, connection);
+        const confirmation = await connection.confirmTransaction({
+            signature: txId,
+            blockhash,
+            lastValidBlockHeight,
+        });
+
+        if (confirmation.value.err) {
+            toast.error("X - Transaction not confirmed.");
+            throw new Error("❌ - Transaction not confirmed.");
+        }
+        console.log("❎ CLOSE SUCCESSFUL! ❎", "\n", `https://explorer.solana.com/tx/${txId}`);
+        toast.custom((t) => (
+            <div
+                className={`${t.visible ? 'animate-enter' : 'animate-leave'
+                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+            >
+                <div className="flex-1 w-0 p-4">
+                    <div className="flex items-start">
+                        <div className="flex-shrink-0 pt-0.5">
+                        </div>
+                        <div className="ml-3 flex-1">
+                            <p className="text-sm font-medium text-gray-900">
+                                Transaction ID
+                            </p>
+                            <p className="mt-1 text-sm text-gray-500">
+                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}?cluster=devnet`}>Open Explorer</Link>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div className="flex border-l border-gray-200">
+                    <button
+                        onClick={() => toast.dismiss(t.id)}
+                        className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    >
+                        Close
+                    </button>
+                </div>
+            </div>
+        ));
+        toast.success("❎ CLOSE SUCCESSFUL! ❎");
+        getAllTokens(); // Refresh the tokens list
+    }
+
     return (
         <main className="flex min-h-screen flex-col items-center justify-evenly p-24">
             <div><Toaster /></div>
@@ -211,7 +277,17 @@ export default function Address() {
                                                         } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
                                                     hidden={token.account.data.parsed.info.tokenAmount.uiAmount === 0}
                                                 >
-                                                    Burn
+                                                    🔥
+                                                </button>
+                                                <button
+                                                    onClick={() => closeAccount(token)}
+                                                    className={`${token.account.data.parsed.info.tokenAmount.uiAmount !== 0
+                                                        ? "cursor-not-allowed"
+                                                        : "cursor-pointer"
+                                                        } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
+                                                    hidden={token.account.data.parsed.info.tokenAmount.uiAmount !== 0}
+                                                >
+                                                    ❌
                                                 </button>
                                             </td>
                                         </tr>
