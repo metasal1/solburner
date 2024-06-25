@@ -2,7 +2,6 @@
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
-    Connection,
     LAMPORTS_PER_SOL,
     GetProgramAccountsFilter,
     PublicKey,
@@ -17,6 +16,9 @@ import {
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
+import Image from "next/image";
+
+const url = process.env.NEXT_PUBLIC_RPC || ''
 
 export default function Page() {
     const { connection } = useConnection();
@@ -24,27 +26,7 @@ export default function Page() {
     const [tokens, setTokens] = useState<any[]>([]);
     const [burnAmount, setBurnAmount] = useState<number>(0);
     const [balance, setBalance] = useState<number>(0);
-
-    const getAirdropOnClick = async () => {
-        try {
-            if (!publicKey) {
-                throw new Error("Wallet is not Connected");
-            }
-            const [latestBlockhash, signature] = await Promise.all([
-                connection.getLatestBlockhash(),
-                connection.requestAirdrop(publicKey, 1 * LAMPORTS_PER_SOL),
-            ]);
-            const sigResult = await connection.confirmTransaction(
-                { signature, ...latestBlockhash },
-                "confirmed"
-            );
-            if (sigResult) {
-                alert("Airdrop was confirmed!");
-            }
-        } catch (err) {
-            alert("You are Rate limited for Airdrop");
-        }
-    };
+    const [metadata, setMetadata] = useState<any[]>([]);
 
     useEffect(() => {
         if (publicKey) {
@@ -79,6 +61,29 @@ export default function Page() {
         ];
         const accounts = await connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, { filters });
         setTokens(accounts);
+
+        const mintAddresses = tokens.map((account) => account.account.data.parsed.info.mint)
+        const getAssetBatch = async () => {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    jsonrpc: '2.0',
+                    id: 'my-id',
+                    method: 'getAssetBatch',
+                    params: {
+                        ids: mintAddresses
+                    },
+                }),
+            });
+            const { result } = await response.json();
+            return result
+        };
+        const result = await getAssetBatch()
+        console.log(result)
+        setMetadata(result)
     };
 
     const letsBurnToken = async (token: any) => {
@@ -166,7 +171,6 @@ export default function Page() {
     }
 
     const closeAccount = async (token: any) => {
-        alert("This feature is not yet implemented");
 
         if (!publicKey) return;
 
@@ -248,7 +252,6 @@ export default function Page() {
                                 <thead>
                                     <tr>
                                         <th className="border border-gray-300 px-4 py-2">Token</th>
-                                        {/* <th className="border border-gray-300 px-4 py-2">ATA Address</th> */}
                                         <th className="border border-gray-300 px-4 py-2">Amount</th>
                                         <th className="border border-gray-300 px-4 py-2">Burn</th>
                                     </tr>
@@ -256,8 +259,12 @@ export default function Page() {
                                 <tbody>
                                     {tokens.map((token, index) => (
                                         <tr key={index} className="border border-gray-300">
-                                            <td className="border border-gray-300 px-4 py-2">{addressHelper(token.account.data.parsed.info.mint)}</td>
-                                            {/* <td className="border border-gray-300 px-4 py-2">{addressHelper(token.pubkey.toString())}</td> */}
+                                            <td className="border border-gray-300 px-4 py-2">
+                                                {/* find the name of the mint by the mint aaddress in metadata */}
+                                                {metadata.find((m) => m.id === token.account.data.parsed.info.mint)?.content.metadata.symbol} <br />
+                                                {metadata.find((m) => m.id === token.account.data.parsed.info.mint)?.content.metadata.name} <br />
+                                                {addressHelper(token.account.data.parsed.info.mint)}
+                                            </td>
                                             <td className="border border-gray-300 px-4 py-2">{token.account.data.parsed.info.tokenAmount.uiAmount}</td>
                                             <td className="border border-gray-300 px-4 py-2">
                                                 <input
