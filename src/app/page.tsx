@@ -46,52 +46,81 @@ export default function Page() {
     }, [publicKey, connection]);
 
     const getAllTokens = async () => {
-        if (!publicKey) return;
 
-        const filters: GetProgramAccountsFilter[] = [
-            {
-                dataSize: 165,
-            },
-            {
-                memcmp: {
-                    offset: 32,
-                    bytes: publicKey.toBase58(),
-                },
-            },
-        ];
-        const accounts = await connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, { filters });
-        setTokens(accounts);
+        const raw = JSON.stringify({
+            "jsonrpc": "2.0",
+            "id": "my-id",
+            "method": "searchAssets",
+            "params": {
+                "ownerAddress": publicKey?.toBase58(),
+                "tokenType": "fungible",
+                "options": {
+                    "showZeroBalance": true
+                }
+            }
+        });
 
-        const mintAddresses = tokens.map((account) => account.account.data.parsed.info.mint)
-        const getAssetBatch = async () => {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    jsonrpc: '2.0',
-                    id: 'my-id',
-                    method: 'getAssetBatch',
-                    params: {
-                        ids: mintAddresses
-                    },
-                }),
-            });
-            const { result } = await response.json();
-            return result
+        const requestOptions = {
+            method: "POST",
+            body: raw,
+            redirect: "follow"
         };
-        const result = await getAssetBatch()
-        console.log(result)
-        setMetadata(result)
-    };
+
+        const data = await fetch(url, requestOptions)
+        const result = await data.json()
+        setTokens(result.result.items)
+
+
+    }
+
+
+    // const getAllTokens = async () => {
+    //     if (!publicKey) return;
+
+    //     const filters: GetProgramAccountsFilter[] = [
+    //         {
+    //             dataSize: 165,
+    //         },
+    //         {
+    //             memcmp: {
+    //                 offset: 32,
+    //                 bytes: publicKey.toBase58(),
+    //             },
+    //         },
+    //     ];
+    //     const accounts = await connection.getParsedProgramAccounts(TOKEN_PROGRAM_ID, { filters });
+    //     setTokens(accounts);
+
+    //     const mintAddresses = tokens.map((account) => account.account.data.parsed.info.mint)
+    //     const getAssetBatch = async () => {
+    //         const response = await fetch(url, {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //             },
+    //             body: JSON.stringify({
+    //                 jsonrpc: '2.0',
+    //                 id: 'my-id',
+    //                 method: 'getAssetBatch',
+    //                 params: {
+    //                     ids: mintAddresses
+    //                 },
+    //             }),
+    //         });
+    //         const { result } = await response.json();
+    //         return result
+    //     };
+    //     const result = await getAssetBatch()
+    //     console.log(result)
+    //     setMetadata(result)
+    // };
 
     const letsBurnToken = async (token: any) => {
         if (!publicKey) return;
 
-        const mintAddress = token.account.data.parsed.info.mint;
-        const decimals = token.account.data.parsed.info.tokenAmount.decimals;
-        const ataAddress = token.pubkey;
+        const mintAddress = token.id;
+        const decimals = token.token_info.decimals;
+        const ataAddress = token.token_info.associated_token_address;
 
         const burnIx = createBurnCheckedInstruction(
             new PublicKey(ataAddress),
@@ -174,7 +203,7 @@ export default function Page() {
 
         if (!publicKey) return;
 
-        const ataAddress = token.pubkey;
+        const ataAddress = token.token_info.associated_token_address;
 
         const closeIx = createCloseAccountInstruction(
             new PublicKey(ataAddress),
@@ -238,7 +267,7 @@ export default function Page() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-evenly p-24">
             <div><Toaster /></div>
-            <div className="text-4xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURN</div>
+            <div className="text-4xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURNER</div>
             <div className="italic text-sm md:text-md text-center p-2">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <WalletMultiButton style={{}} />
 
@@ -252,47 +281,53 @@ export default function Page() {
                                 <thead>
                                     <tr>
                                         <th className="border border-gray-300 px-4 py-2">Token</th>
-                                        <th className="border border-gray-300 px-4 py-2">Amount</th>
-                                        <th className="border border-gray-300 px-4 py-2">Burn</th>
+                                        <th className="border border-gray-300 px-4 py-2">Balance</th>
+                                        {/* <th className="border border-gray-300 px-4 py-2">ATA</th> */}
+                                        <th className="border border-gray-300 px-4 py-2">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {tokens.map((token, index) => (
                                         <tr key={index} className="border border-gray-300">
                                             <td className="border border-gray-300 px-4 py-2">
-                                                {/* find the name of the mint by the mint aaddress in metadata */}
-                                                {metadata.find((m) => m.id === token.account.data.parsed.info.mint)?.content.metadata.symbol} <br />
-                                                {metadata.find((m) => m.id === token.account.data.parsed.info.mint)?.content.metadata.name} <br />
-                                                {addressHelper(token.account.data.parsed.info.mint)}
+                                                <Link href={token.content?.files[0]?.cdn_uri || ''} target="_blank">
+                                                    <Image src={token.content?.files[0]?.cdn_uri || '/na.png'} alt={token.token_info.symbol || token.id} width={20} height={20} />
+                                                </Link>
+                                                {token.content.metadata.symbol}<br />
+                                                {token.content.metadata.name}
+                                                {addressHelper(token.id)}
                                             </td>
-                                            <td className="border border-gray-300 px-4 py-2">{token.account.data.parsed.info.tokenAmount.uiAmount}</td>
+                                            <td className="border border-gray-300 px-4 py-2">{token.token_info.balance}</td>
+                                            {/* <td className="border border-gray-300 px-4 py-2">{token.token_info.associated_token_address}</td> */}
                                             <td className="border border-gray-300 px-4 py-2">
                                                 <input
                                                     onChange={(e) => setBurnAmount(Number(e.target.value))}
                                                     min={0}
-                                                    max={token.account.data.parsed.info.tokenAmount.uiAmount}
+                                                    max={token.token_info.balance}
                                                     type="number"
                                                     placeholder="0"
                                                     className="text-orange-600"
-                                                    disabled={token.account.data.parsed.info.tokenAmount.uiAmount === 0}
+                                                    disabled={token.token_info.balance === 0}
                                                 />
                                                 <button
                                                     onClick={() => letsBurnToken(token)}
-                                                    className={`${token.account.data.parsed.info.tokenAmount.uiAmount === 0
+                                                    // disabled if the value of the input is set to 0
+                                                    disabled={burnAmount === 0}
+                                                    className={`${token.token_info.balance === 0
                                                         ? "cursor-not-allowed"
                                                         : "cursor-pointer"
                                                         } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
-                                                    hidden={token.account.data.parsed.info.tokenAmount.uiAmount === 0}
+                                                    hidden={token.token_info.balance === 0}
                                                 >
                                                     🔥
                                                 </button>
                                                 <button
                                                     onClick={() => closeAccount(token)}
-                                                    className={`${token.account.data.parsed.info.tokenAmount.uiAmount !== 0
+                                                    className={`${token.token_info.balance !== 0
                                                         ? "cursor-not-allowed"
                                                         : "cursor-pointer"
                                                         } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
-                                                    hidden={token.account.data.parsed.info.tokenAmount.uiAmount !== 0}
+                                                    hidden={token.token_info.balance !== 0}
                                                 >
                                                     ❌
                                                 </button>
