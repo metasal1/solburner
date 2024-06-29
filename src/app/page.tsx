@@ -1,5 +1,4 @@
 "use client";
-
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import {
     LAMPORTS_PER_SOL,
@@ -21,6 +20,7 @@ import Image from "next/image";
 const url = process.env.NEXT_PUBLIC_RPC || ''
 
 export default function Page() {
+
     const { connection } = useConnection();
     const { publicKey, sendTransaction } = useWallet();
     const [tokens, setTokens] = useState<any[]>([]);
