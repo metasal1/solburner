@@ -289,7 +289,7 @@ export default function Page() {
     return (
         <main className="flex min-h-screen flex-col items-center justify-evenly p-24">
             <div><Toaster /></div>
-            <div className="text-4xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURNER</div>
+            <div className="text-2xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURNER</div>
             <div className="italic text-sm md:text-md text-center p-2">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <WalletMultiButton style={{}} />
 
