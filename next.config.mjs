@@ -7,9 +7,23 @@ const nextConfig = {
             'i.postimg.cc',
             'ipfs.nftstorage.link',
             'digitaloceanspaces.com',
-            'arweave.net'
+            'arweave.net',
+            'solburner.fun'
         ],
     },
+    headers: async () => {
+        return [
+            {
+                source: '/:path*',
+                headers: [
+                    {
+                        key: 'Cache-Control',
+                        value: 'no-store',
+                    },
+                ],
+            },
+        ]
+    }
 };
 
 export default nextConfig;
