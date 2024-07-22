@@ -9,6 +9,7 @@ import { WalletAdapterNetwork } from "@solana/wallet-adapter-base";
 import { WalletModalProvider } from "@solana/wallet-adapter-react-ui";
 // import { clusterApiUrl } from "@solana/web3.js";
 // import { UnsafeBurnerWalletAdapter } from "@solana/wallet-adapter-wallets";
+import { TipLinkWalletAdapter } from "@tiplink/wallet-adapter";
 
 // Default styles that can be overridden by your app
 require("@solana/wallet-adapter-react-ui/styles.css");
@@ -27,6 +28,11 @@ export default function AppWalletProvider({
     const wallets = useMemo(
         () => [
             // Add your wallet adapters here
+            new TipLinkWalletAdapter({
+                title: "Solburner",
+                clientId: "166731c5-3737-4128-9cd4-74d998cd1376",
+                theme: "system"  // pick between "dark"/"light"/"system"
+            }),
         ],
         [],
     );
