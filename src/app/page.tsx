@@ -267,7 +267,7 @@ export default function Page() {
                                 Transaction ID
                             </p>
                             <p className="mt-1 text-sm text-gray-500">
-                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}?cluster=devnet`}>Open Explorer</Link>
+                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}`}>Open Explorer</Link>
                             </p>
                         </div>
                     </div>
