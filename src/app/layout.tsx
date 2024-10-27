@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import AppWalletProvider from "./components/AppWalletProvider";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -25,6 +26,7 @@ export default function RootLayout({
           {children}
         </AppWalletProvider>
       </body>
+      <Script defer src="https://analytics.tokenshit.com/script.js" data-website-id="6474d169-6204-4dfd-b2d3-16a3a8ad5bb2"></Script>
     </html>
   );
 }

@@ -17,7 +17,7 @@ import * as bs58 from "bs58";
 
     const tokenAccountPubkey = new PublicKey(
         // Mint "3Swae3mCqGmdEqXR4vKDm7dxiy6zwgD346X4fQWmMTmY"
-        "8f5a3Q9ebKn8PMhcqNhdFVpakqxoo1BLeEukqGraMqDA"
+        "144AMG8NvXJmpmH7mZF3qkUunuPVqXKMzNGNEG1wqgfE"
     );
 
     // ATA 8f5a3Q9ebKn8PMhcqNhdFVpakqxoo1BLeEukqGraMqDA

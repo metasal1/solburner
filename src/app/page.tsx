@@ -4,6 +4,7 @@ import {
     LAMPORTS_PER_SOL,
     PublicKey,
     Transaction,
+    TransactionInstruction,
     TransactionMessage,
     VersionedTransaction,
 } from "@solana/web3.js";
@@ -17,6 +18,8 @@ import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
 import { ColorRing } from 'react-loader-spinner'
+import { Sign } from "crypto";
+import SignMessage from "./components/SignMessage";
 
 const url = process.env.NEXT_PUBLIC_RPC || ''
 
@@ -226,65 +229,76 @@ export default function Page() {
         );
     }
 
-    const close = async (token: any) => {
+    const closeAccount = async (token: any) => {
 
+        console.log('lets close this mfer')
         if (!publicKey) return;
 
+        const mintAddress = token.id;
         const ataAddress = token.token_info.associated_token_address;
 
-        const tx = new Transaction();
-        tx.add(createCloseAccountInstruction(
+        const closeIx = createCloseAccountInstruction(
             new PublicKey(ataAddress),
             new PublicKey(publicKey.toBase58()),
-            new PublicKey(publicKey.toBase58())
-        ))
+            new PublicKey(publicKey.toBase58()),
+        );
 
         const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("finalized");
 
-        const txId = await sendTransaction(tx, connection);
-        const confirmation = await connection.confirmTransaction({
-            signature: txId,
-            blockhash,
-            lastValidBlockHeight,
-        });
+        const messageV0 = new TransactionMessage({
+            payerKey: publicKey,
+            recentBlockhash: blockhash,
+            instructions: [closeIx],
+        }).compileToV0Message();
+        const transaction = new VersionedTransaction(messageV0);
+        try {
+            const txId = await sendTransaction(transaction, connection);
+            const confirmation = await connection.confirmTransaction({
+                signature: txId,
+                blockhash,
+                lastValidBlockHeight,
+            });
 
-        if (confirmation.value.err) {
-            toast.error("X - Transaction not confirmed.");
-            throw new Error("❌ - Transaction not confirmed.");
-        }
-        console.log("❎ CLOSE SUCCESSFUL! ❎", "\n", `https://explorer.solana.com/tx/${txId}`);
-        toast.custom((t) => (
-            <div
-                className={`${t.visible ? 'animate-enter' : 'animate-leave'
-                    } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
-            >
-                <div className="flex-1 w-0 p-4">
-                    <div className="flex items-start">
-                        <div className="flex-shrink-0 pt-0.5">
-                        </div>
-                        <div className="ml-3 flex-1">
-                            <p className="text-sm font-medium text-gray-900">
-                                Transaction ID
-                            </p>
-                            <p className="mt-1 text-sm text-gray-500">
-                                <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}`}>Open Explorer</Link>
-                            </p>
+            if (confirmation.value.err) {
+                toast.error("X - Transaction not confirmed.");
+                throw new Error("❌ - Transaction not confirmed.");
+            }
+            toast.custom((t) => (
+                <div
+                    className={`${t.visible ? 'animate-enter' : 'animate-leave'
+                        } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+                >
+                    <div className="flex-1 w-0 p-4">
+                        <div className="flex items-start">
+                            <div className="flex-shrink-0 pt-0.5">
+                            </div>
+                            <div className="ml-3 flex-1">
+                                <p className="text-sm font-medium text-gray-900">
+                                    Transaction ID
+                                </p>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    <Link target="_blank" href={`https://explorer.solana.com/tx/${txId}`}>Open Explorer</Link>
+                                </p>
+                            </div>
                         </div>
                     </div>
+                    <div className="flex border-l border-gray-200">
+                        <button
+                            onClick={() => toast.dismiss(t.id)}
+                            className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                            Close
+                        </button>
+                    </div>
                 </div>
-                <div className="flex border-l border-gray-200">
-                    <button
-                        onClick={() => toast.dismiss(txId)}
-                        className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                    >
-                        Close
-                    </button>
-                </div>
-            </div>
-        ));
-        GetAllTokens(); // Refresh the tokens list
-        toast.success("❎ CLOSE SUCCESSFUL! ❎");
-    }
+            ));
+            GetAllTokens(); // Refresh the tokens list
+            toast.success("🔥 SUCCESSFUL CLOSE!🔥");
+        } catch (error) {
+            console.log(error)
+        }
+
+    };
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-evenly p-24">
@@ -292,7 +306,7 @@ export default function Page() {
             <div className="text-2xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURNER</div>
             <div className="italic text-sm md:text-md text-center p-2">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <WalletMultiButton style={{}} />
-
+            <SignMessage />
             {/* {isTokenListLoading && <div className="text-2xl">
                 <ColorRing
                     visible={true}
@@ -344,6 +358,8 @@ export default function Page() {
                                                 <input
                                                     onChange={(e) => setBurnAmount(Number(e.target.value))}
                                                     min={0}
+                                                    name="burnAmount"
+                                                    id="burnAmount"
                                                     max={token.token_info?.balance}
                                                     hidden={token.token_info?.balance === 0}
                                                     type="number"
@@ -353,11 +369,11 @@ export default function Page() {
                                                 />
                                                 <button
                                                     onClick={() => letsBurnToken(token)}
+                                                    hidden={token.token_info?.balance === 0}
                                                     className={`${token.token_info?.balance === 0
                                                         ? "cursor-not-allowed"
                                                         : "cursor-pointer"
                                                         } text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-1 py-1 me-1 mb-1 dark:bg-gray-800 dark:text-white dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:border-gray-600 dark:focus:ring-gray-700`}
-                                                    hidden={token.token_info?.balance === 0}
                                                 >
                                                     🔥
                                                 </button>
@@ -372,7 +388,7 @@ export default function Page() {
                                                     🔥 ALL
                                                 </button>
                                                 <button
-                                                    onClick={() => close(token)}
+                                                    onClick={() => closeAccount(token)}
                                                     className={`${token.token_info?.balance !== 0
                                                         ? "cursor-not-allowed"
                                                         : "cursor-pointer"
