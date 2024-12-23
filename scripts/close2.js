@@ -10,7 +10,7 @@ import * as bs58 from "bs58";
 
 (async () => {
     // connection
-    const connection = new Connection("https://devnet.helius-rpc.com/?api-key=ff0d3523-6397-47bf-bf5d-acb7d765d5ff");
+    const connection = new Connection("https://mainnet.helius-rpc.com/?api-key=ff0d3523-6397-47bf-bf5d-acb7d765d5ff");
 
     // 2vSCAARUfRvYAKANjVreSAEhrnLnEjTsyTHD6p7968eE
     const feePayer = Keypair.fromSecretKey(new Uint8Array([11, 5, 145, 51, 19, 21, 166, 31, 148, 179, 66, 109, 204, 2, 197, 111, 172, 4, 188, 82, 50, 81, 161, 9, 175, 47, 101, 231, 206, 123, 251, 123, 28, 139, 244, 117, 178, 78, 226, 240, 108, 72, 245, 149, 132, 89, 12, 226, 143, 78, 135, 8, 102, 111, 239, 4, 143, 19, 225, 131, 238, 76, 63, 179]));

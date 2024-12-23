@@ -19,7 +19,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { ColorRing } from 'react-loader-spinner'
 import { Sign } from "crypto";
-import SignMessage from "./components/SignMessage";
 
 const url = process.env.NEXT_PUBLIC_RPC || ''
 
@@ -32,8 +31,7 @@ export default function Page() {
     const [balance, setBalance] = useState<number>(0);
     const [isTokenListLoading, setIsTokenListLoading] = useState(false);
 
-    const GetAllTokens = (async () => {
-        // setIsTokenListLoading(true)
+    const GetAllTokens = useCallback(async () => {
         const raw = JSON.stringify({
             "jsonrpc": "2.0",
             "id": "my-id",
@@ -55,8 +53,7 @@ export default function Page() {
         const data = await fetch(url, options)
         const result = await data.json()
         setTokens(result.result.items)
-        // setIsTokenListLoading(false)
-    })
+    }, [publicKey]);
 
     useEffect(() => {
         if (publicKey) {
@@ -306,7 +303,6 @@ export default function Page() {
             <div className="text-2xl md:text-5xl lg:text-7xl 2xl:text-9xl font-extrabold">S🔥LBURNER</div>
             <div className="italic text-sm md:text-md text-center p-2">The fastest, easiest, safest, cheapest way to burn Solana tokens you do not need!</div>
             <WalletMultiButton style={{}} />
-            <SignMessage />
             {/* {isTokenListLoading && <div className="text-2xl">
                 <ColorRing
                     visible={true}

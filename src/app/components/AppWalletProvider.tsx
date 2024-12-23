@@ -23,7 +23,7 @@ export default function AppWalletProvider({
 }) {
     const network = WalletAdapterNetwork.Mainnet;
     // Use your custom RPC endpoint here
-    const customRpcEndpoint = process.env.NEXT_PUBLIC_RPC ?? 'https://api.devnet.solana.com';
+    const customRpcEndpoint = process.env.NEXT_PUBLIC_RPC ?? 'https://xyz.validators.solutions?api-key=2b757f45-e604-478d-bc3b-0578c283b163';
     const endpoint = useMemo(() => customRpcEndpoint, [customRpcEndpoint]);
     const wallets = useMemo(
         () => [
