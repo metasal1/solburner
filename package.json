@@ -12,6 +12,8 @@
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/material": "^6.0.0-alpha.12",
+    "@passkeys/core": "^3.3.6",
+    "@passkeys/react": "^3.0.0-rc.1",
     "@solana/actions": "^1.2.0",
     "@solana/spl-token": "^0.4.6",
     "@solana/wallet-adapter-base": "^0.9.23",

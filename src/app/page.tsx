@@ -17,8 +17,6 @@ import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import toast, { Toaster } from "react-hot-toast";
 import Link from "next/link";
 import Image from "next/image";
-import { ColorRing } from 'react-loader-spinner'
-import { Sign } from "crypto";
 
 const url = process.env.NEXT_PUBLIC_RPC || ''
 
@@ -404,6 +402,7 @@ export default function Page() {
             ) : (
                 <h1>Wallet is not connected</h1>
             )}
+
             <footer className="text-xs p-5">Made by <Link className="text-red-500" target="_blank" href={"https://www.metasal.xyz"}>@metasal</Link></footer>
         </main>
     );
